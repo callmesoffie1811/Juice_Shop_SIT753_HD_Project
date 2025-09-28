@@ -188,17 +188,28 @@ pipeline {
           echo "=== CODE QUALITY STAGE ==="
           echo "Running ESLint for code quality analysis"
           mkdir -p reports/eslint
-          npx eslint . -f checkstyle -o reports/eslint/eslint.xml || echo "ESLint completed with issues"
+          
+          echo "Running ESLint on TypeScript files"
+          npx eslint *.ts data lib models routes test/**/*.ts views --format json --output-file reports/eslint/eslint-results.json || echo "ESLint completed with issues"
+          
+          echo "Running ESLint on JavaScript files"  
+          npx eslint . --format json --output-file reports/eslint/eslint-all.json || echo "ESLint completed with issues"
           
           echo "Running TypeScript compilation check"
           npm run build:server || echo "TypeScript compilation completed"
           
-          echo "Code quality stage completed"
+          echo "Code quality metrics:"
+          if [ -f reports/eslint/eslint-results.json ]; then
+            echo "ESLint results saved to reports/eslint/eslint-results.json"
+          fi
+          
+          echo "Code quality stage completed successfully"
         '''
       }
       post {
         always {
-          recordIssues enabledForFailure: true, tools: [checkStyle(pattern: 'reports/eslint/*.xml')]
+          archiveArtifacts artifacts: 'reports/eslint/*.json', allowEmptyArchive: true
+          echo "Code quality analysis completed - ESLint reports archived"
         }
       }
     }

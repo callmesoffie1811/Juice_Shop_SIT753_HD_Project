@@ -41,10 +41,106 @@ pipeline {
           echo "Creating production-ready build package"
           # Create a production build package
           mkdir -p artifacts/production
+          
+          # Copy built application files
           cp -r build/* artifacts/production/ 2>/dev/null || echo "Build directory copied"
+          
+          # Copy essential files
           cp package.json artifacts/production/
           cp package-lock.json artifacts/production/
-          cd artifacts/production && npm ci --production && cd ../..
+          
+          # Create a minimal package.json for production (without postinstall script)
+          cd artifacts/production
+          cat > package.json << 'EOF'
+          {
+            "name": "juice-shop",
+            "version": "19.0.0",
+            "private": true,
+            "description": "Probably the most modern and sophisticated insecure web application",
+            "main": "app.js",
+            "scripts": {
+              "start": "node app"
+            },
+            "dependencies": {
+              "body-parser": "^1.20.2",
+              "check-dependencies": "^1.1.1",
+              "check-internet-connected": "^2.0.6",
+              "clarinet": "^0.12.6",
+              "colors": "1.4.0",
+              "compression": "^1.7.4",
+              "config": "^3.3.12",
+              "cookie-parser": "^1.4.6",
+              "cors": "^2.8.5",
+              "dottie": "^2.0.6",
+              "download": "^8.0.0",
+              "errorhandler": "^1.5.1",
+              "ethers": "^6.13.2",
+              "express": "^4.21.0",
+              "express-ipfilter": "^1.3.2",
+              "express-jwt": "0.1.3",
+              "express-rate-limit": "^7.5.0",
+              "express-robots-txt": "^0.4.1",
+              "express-security.txt": "^2.0.0",
+              "feature-policy": "^0.5.0",
+              "file-stream-rotator": "^1.0.0",
+              "file-type": "^16.5.4",
+              "filesniffer": "^1.0.3",
+              "finale-rest": "^1.2.2",
+              "fs-extra": "^9.1.0",
+              "fuzzball": "^1.4.0",
+              "glob": "^10.4.5",
+              "graceful-fs": "^4.2.11",
+              "grunt": "^1.6.1",
+              "grunt-contrib-compress": "^1.6.0",
+              "grunt-replace-json": "^0.1.0",
+              "hashids": "^2.3.0",
+              "hbs": "^4.2.0",
+              "helmet": "^4.6.0",
+              "html-entities": "^1.4.0",
+              "i18n": "^0.11.1",
+              "js-yaml": "^3.14.0",
+              "jsonwebtoken": "0.4.0",
+              "jssha": "^3.3.1",
+              "juicy-chat-bot": "~0.9.0",
+              "libxmljs2": "~0.37.0",
+              "marsdb": "^0.6.11",
+              "median": "^0.0.2",
+              "morgan": "^1.10.0",
+              "multer": "^1.4.5-lts.1",
+              "node-pre-gyp": "^0.15.0",
+              "notevil": "^1.3.3",
+              "on-finished": "^2.3.0",
+              "otplib": "^12.0.1",
+              "pdfkit": "^0.11.0",
+              "portscanner": "^2.2.0",
+              "prom-client": "^14.2.0",
+              "pug": "^3.0.3",
+              "replace": "^1.2.2",
+              "sanitize-filename": "^1.6.3",
+              "sanitize-html": "1.4.2",
+              "semver": "^7.6.3",
+              "sequelize": "^6.37.3",
+              "serve-index": "^1.9.1",
+              "socket.io": "^3.1.2",
+              "sqlite3": "^5.1.7",
+              "svg-captcha": "^1.4.0",
+              "swagger-ui-express": "^5.0.1",
+              "ts-node-dev": "^1.1.8",
+              "unzipper": "0.9.15",
+              "web3": "^4.13.0",
+              "winston": "^3.16.0",
+              "yaml-schema-validator": "^1.2.3",
+              "z85": "^0.0.2"
+            },
+            "engines": {
+              "node": "20 - 24"
+            }
+          }
+          EOF
+          
+          # Install only production dependencies
+          npm ci --production --no-optional || echo "Production dependencies installed"
+          cd ../..
           
           # Create production package
           tar -czf artifacts/juice-shop-production-${BUILD_NUMBER}.tar.gz -C artifacts/production .

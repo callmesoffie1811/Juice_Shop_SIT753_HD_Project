@@ -1,6 +1,6 @@
 pipeline {
   agent any
-  options { timestamps(); ansiColor('xterm') }
+  options { timestamps() }
   tools { nodejs 'nodejs_lts' }
 
   environment {
